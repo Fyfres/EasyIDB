@@ -1,0 +1,30 @@
+{
+  "name": "easyidb",
+  "version": "1.0.0",
+  "description": "Easy CRUD functions with IndexedDB using LocalBase Dependency.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fyfres/EasyIDB.git"
+  },
+  "keywords": [
+    "IndexedDB",
+    "Javascript",
+    "Offline",
+    "Relational"
+  ],
+  "author": "Fyfrel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Fyfres/EasyIDB/issues"
+  },
+  "homepage": "https://github.com/Fyfres/EasyIDB#readme",
+  "dependencies": {
+    "localbase": "^0.7.4",
+    "uuidv4": "^6.2.6",
+    "@babel/plugin-proposal-class-properties":"^7.10.1"
+  }
+}
