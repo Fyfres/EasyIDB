@@ -1,6 +1,6 @@
 {
   "name": "easy-idb",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Package to use IndexedDB like an SQL DB.",
   "main": "index.js",
   "scripts": {

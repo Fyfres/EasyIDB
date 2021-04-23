@@ -95,6 +95,9 @@ export default class EasyIDB extends Localbase {
                     saveOrUpdate(value,key.split("fk_")[1]).then((id)=>{
                         response[key] = id;
                         i--;
+                        if(i === 0) {
+                            resolve(response);
+                        }
                     }).catch(e=>{reject(e)})
                 }
                 if(key.startsWith("fks_")) {
@@ -104,6 +107,9 @@ export default class EasyIDB extends Localbase {
                             saveOrUpdate(fk,key.split("fks_")[1]).then((id)=>{
                                 response[key][index] = id;
                                 i--;
+                                if(i === 0) {
+                                    resolve(response);
+                                }
                             }).catch(e=>{reject(e)})
                         }
                     })
@@ -169,15 +175,41 @@ export default class EasyIDB extends Localbase {
 
     getBy = (collection, search, {limit,orderBy,orderDir} = {limit:99999,orderBy:undefined,orderDir:undefined}) => {
         return new Promise(async (resolve, reject) => {
-            await this.#createGetRequestWithParams(collection,{limit,orderBy,orderDir}).doc(search).get().then((response) => {
-                this.#replaceIdOfFkByObject(response).then(resp=>{
-                    resolve(resp);
-                }).catch((e)=> {
-                    reject(e);
+            await this.getAll(collection, {}).then(results => {
+                results = results.filter(item => {
+                    for (const key in search) {
+                        if(search[key].comparator && search[key].comparator !== "=") {
+                            if(item.hasOwnProperty(key)){
+                                if(search[key].comparator === "contain" && !item[key].include(search[key].value)) return false;
+                                if(search[key].comparator === "start" && !item[key].startsWith(search[key].value)) return false;
+                                if(search[key].comparator === "end" && !item[key].endsWith(search[key].value)) return false;
+                                if(search[key].comparator === "!=" && item[key] === search[key].value) return false;
+                                if(search[key].comparator === "<" && item[key] >= search[key].value) return false;
+                                if(search[key].comparator === "<=" && item[key] > search[key].value) return false;
+                                if(search[key].comparator === ">" && item[key] <= search[key].value) return false;
+                                if(search[key].comparator === ">=" && item[key] < search[key].value) return false;
+                                if(["contain","start","end","!=","<","<=",">",">="].indexOf(search[key].comparator) === -1) reject("The comparator \"" + search[key].comparator + "\" used on the field \"" + key + "\" isn't supported.");
+                            } else {
+                                return false;
+                            }
+                        } else {
+                            if(search[key].value !== item[key]) {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
                 })
-            }).catch((e)=>{
-                reject(e)
+                if(orderBy){
+                    results = results.sort((a,b) => {
+                        return a[orderBy].toString().localeCompare(b[orderBy].toString())
+                    })
+                    if(orderDir.toLowerCase() === "desc") results = results.reverse();
+                }
+                if(limit)  results = results.splice(0,limit);
+                resolve(results);
             })
+
         })
     }
 

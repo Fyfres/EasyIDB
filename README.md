@@ -108,5 +108,18 @@ The result ordered.
 | Argument | Description |
 | --- | --- |
 | collection | String for the name of the collection you want to your objects from. |
-| search | Object with the properties to search and the value they must be equal to. |
-| option | Object with the properties "orderBy" is a String to tell the name of the field by with your result will be ordered, and "orderDir" that can be "asc" or "desc" (not case sensitive) to tell how you want to order you results.  |
+| search | Object with the properties to search and the value of each is an object with the "value" to search and compare and a "comparator". |
+| option | Object with the properties "limit" that tells how many item you want at max (set to 99999 by default), "orderBy" is a String to tell the name of the field by with your result will be ordered, and "orderDir" that can be "asc" or "desc" (not case sensitive) to tell how you want to order you results.  |
+
+#### Parameter available as a comparator
+
+| name | description |
+| --- | --- |
+| contain | Check if the property in the document contain a string somewhere. |
+| start | Check if a property in the document start with a string. |
+| end | Check if a property in the document end with a string. |
+| != | Check if a property is not equal to your value. |
+| < | Check if a property is inferior to your value. |
+| <= | Check if a property is inferior or equal to your value. |
+| > | Check if a property is superior to your value. |
+| >= | Check if a property is superior or equal to your value. |
