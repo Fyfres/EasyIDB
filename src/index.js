@@ -2,9 +2,8 @@ import Localbase from "localbase";
 import {v4 as uuid} from "uuid";
 
 export default class EasyIDB extends Localbase {
-    constructor(dbName, maxTimeOut = 200) {
+    constructor(dbName) {
         super(dbName);
-        this.maxTimeOut = maxTimeOut;
         this.config.debug = false;
     }
 
@@ -20,53 +19,38 @@ export default class EasyIDB extends Localbase {
     }
 
     #replaceIdOfFkByObject = (response) => {
-        return new Promise((resolve, reject)=>{
-            let i = 0;
-            let timeOut = this.maxTimeOut/2;
-            for (const [key, value] of Object.entries(response)) {
+        return new Promise(async(resolve, reject)=>{
+            await Promise.all(Object.entries(response).map(async ([key, value])=>{
                 if(key.startsWith("fk_")){
-                    i++;
-                    this.getById(key.split("fk_")[1], value).then(idResp => {
-                        i--;
+                    await this.getById(key.split("fk_")[1], value).then(idResp => {
                         response[key] = idResp;
+                        return response
                     }).catch(e=>reject(e))
                 }
                 if(key.startsWith("fks_")) {
-                    value.forEach((fk, index) => {
-                        i++;
-                        this.getById(key.split("fks_")[1], fk).then(idResp => {
-                            i--;
+                    for (const fk of value) {
+                        let index = value.indexOf(fk);
+                        await this.getById(key.split("fks_")[1], fk).then(idResp => {
                             response[key][index] = idResp
                         }).catch(e=>reject(e))
-                    })
+                    }
+                    return response;
                 }
-            }
-            const inter = setInterval(()=>{
-                if(i === 0) {
-                    window.clearInterval(inter);
-                    resolve(response);
-                }
-                if(timeOut === 0) {
-                    reject("TimeOut Request took to much time to operate")
-                }
-                timeOut--;
-            },2)
-
+            }))
+            resolve(response);
         })
     }
 
 
 
     #replaceObjectOfFkById = (response) => {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const saveOrUpdate = (objectToSaveOrUpdate, collection) => {
                 return new Promise((resolve1, reject1) => {
                     this.#objectExist(collection,objectToSaveOrUpdate.id).then(exist =>{
                         if(exist){
-
                             this.#replaceObjectOfFkById(objectToSaveOrUpdate).then(newObjectToSaveOrUpdate => {
                                 this.change(collection, newObjectToSaveOrUpdate, objectToSaveOrUpdate.id).then(() => {
-
                                     resolve1(objectToSaveOrUpdate.id);
                                 }).catch(e => reject1(e))
                             })
@@ -87,45 +71,27 @@ export default class EasyIDB extends Localbase {
                 })
             }
 
-            let i = 0;
-            let timeOut = this.maxTimeOut/2;
-            for (const [key, value] of Object.entries(response)) {
+            await Promise.all(Object.entries(response).map(async([key,value]) => {
                 if(key.startsWith("fk_") && (typeof value) === "object"){
-                    i++;
-                    saveOrUpdate(value,key.split("fk_")[1]).then((id)=>{
+                    await saveOrUpdate(value,key.split("fk_")[1]).then((id)=>{
                         response[key] = id;
-                        i--;
-                        if(i === 0) {
-                            resolve(response);
-                        }
+                        return response;
                     }).catch(e=>{reject(e)})
                 }
                 if(key.startsWith("fks_")) {
-                    value.forEach((fk,index) => {
+                    for (const fk of value) {
+                        let index = value.indexOf(fk);
                         if((typeof fk) === "object") {
-                            i++;
-                            saveOrUpdate(fk,key.split("fks_")[1]).then((id)=>{
+                            await saveOrUpdate(fk,key.split("fks_")[1]).then((id)=>{
                                 response[key][index] = id;
-                                i--;
-                                if(i === 0) {
-                                    resolve(response);
-                                }
                             }).catch(e=>{reject(e)})
                         }
-                    })
+                    }
+                    return response;
                 }
-            }
-
-            const inter = setInterval(()=>{
-                if(i === 0) {
-                    window.clearInterval(inter);
-                    resolve(response);
-                }
-                if(timeOut === 0) {
-                    reject("TimeOut Request took to much time to operate")
-                }
-                timeOut--;
-            },2)
+                return response;
+            }))
+            resolve(response);
         })
     }
 
@@ -147,26 +113,11 @@ export default class EasyIDB extends Localbase {
 
     getAll = (collection, {limit,orderBy,orderDir} = {limit:99999,orderBy:undefined,orderDir:undefined}) => {
         return new Promise(async (resolve, reject) => {
-            await this.#createGetRequestWithParams(collection,{limit,orderBy,orderDir}).get().then((responses) => {
-                let i = 0;
-                let timeOut = this.maxTimeOut/2;
-                responses.forEach(async (response, i) => {
-                    i++;
-                    this.#replaceIdOfFkByObject(response).then(resp=>{
-                        i--;
-                        response = resp;
-                    })
-                })
-                const inter = setInterval(()=>{
-                    if(timeOut === 0) {
-                        reject("TimeOut Request took to much time to operate")
-                    }
-                    timeOut--;
-                    if(i === 0) {
-                        window.clearInterval(inter);
-                        resolve(responses);
-                    }
-                },2)
+            await this.#createGetRequestWithParams(collection,{limit,orderBy,orderDir}).get().then(async (responses) => {
+                await Promise.all(responses.map(async (response) => {
+                    return await this.#replaceIdOfFkByObject(response)
+                }))
+                resolve(responses);
             }).catch((e)=>{
                 reject(e)
             })
@@ -180,7 +131,7 @@ export default class EasyIDB extends Localbase {
                     for (const key in search) {
                         if(search[key].comparator && search[key].comparator !== "=") {
                             if(item.hasOwnProperty(key)){
-                                if(search[key].comparator === "contain" && !item[key].include(search[key].value)) return false;
+                                if(search[key].comparator === "contain" && !item[key].includes(search[key].value)) return false;
                                 if(search[key].comparator === "start" && !item[key].startsWith(search[key].value)) return false;
                                 if(search[key].comparator === "end" && !item[key].endsWith(search[key].value)) return false;
                                 if(search[key].comparator === "!=" && item[key] === search[key].value) return false;

@@ -28,13 +28,11 @@ Using [yarn](https://yarnpkg.com/en/) as your package manager.
 
 ### Link to an IndexedDB
 
-To create or use an IndexedDB you just need to instantiate an EasyIDB object. 
-It takes two arguments
+To create or use an IndexedDB you just need to instantiate an EasyIDB object with the name of the database you want to use.
 
 | Argument | Description |
 | --- | --- |
 | dbName | String for the name of the IndexedDB |
-| maxTimeOut | Integer for the maximum time an operation must take with the IndexedDB. Set to 200ms by default. |
 
 ### Create Requests "save"
 
@@ -123,3 +121,16 @@ The result ordered.
 | <= | Check if a property is inferior or equal to your value. |
 | > | Check if a property is superior to your value. |
 | >= | Check if a property is superior or equal to your value. |
+
+## Last Updates News
+
+- Code Optimisations to get and translate documents of collections and their fks.
+  
+
+- getBy comparison methods "contain" fixed.
+  
+
+- getBy now have more comparison methods.
+  
+
+- No more TimeOut option, this may return in a future update.

@@ -1,11 +1,11 @@
 {
   "name": "easy-idb",
-  "version": "2.0.0",
-  "description": "Package to use IndexedDB like an SQL DB.",
+  "version": "2.1.1",
+  "description": "Package to use IndexedDB like a relational DB.",
   "main": "index.js",
   "scripts": {
     "test": "",
-    "build": "webpack"
+    "build": "babel src -d dist"
   },
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
     "Indexed",
     "DB",
     "Database",
-    "SQL",
+    "Relational",
     "Javascript"
   ],
   "author": "Sebastien Vermelle",
@@ -25,22 +25,21 @@
     "url": "https://github.com/Fyfres/EasyIDB/issues"
   },
   "homepage": "https://github.com/Fyfres/EasyIDB#readme",
-  "peerDependencies": {
-    "uuid": "^8.3.2",
-    "localbase": "^0.7.4"
-  },
   "devDependencies": {
-    "@babel/core": "^7.13.10",
-    "@babel/preset-env": "^7.13.12",
-    "@babel/preset-react": "^7.12.13",
-    "babel-loader": "^8.2.2",
+    "@babel/cli": "^7.13.16",
+    "@babel/core": "^7.13.16",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/preset-env": "^7.13.15",
     "bootstrap": "^4.6.0",
     "css-loader": "^5.2.0",
+    "localbase": "^0.7.4",
     "style-loader": "^2.0.0",
-    "webpack": "^5.28.0",
-    "webpack-cli": "^4.5.0",
     "uuid": "^8.3.2",
-    "localbase": "^0.7.4"
+    "webpack": "^5.28.0",
+    "webpack-cli": "^4.5.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "localbase": "^0.7.4",
+    "uuid": "^8.3.2"
+  }
 }
